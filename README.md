@@ -1,7 +1,8 @@
 # Scraper for brandstofdata.nl
 
 This project was created to avoid having to manually download and parse data 
-from the website brandstofdata.nl. 
+from the website brandstofdata.nl. It still a work in progress as I want to 
+add more functionalities.
 
 ## Why scrape this website?
 
