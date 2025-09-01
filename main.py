@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# Function to download csv
+# Function to download csv from brandstofdata.nl using selenium
 def download_csv():
     # Selecting browser. Firefox works better than Safari
     browser_driver = webdriver.Firefox()
@@ -22,35 +22,55 @@ def download_csv():
 
 # Function to process csv
 def process_csv():
-    # Use pandas to open and read downloaded csv file
+    # Use pandas to open and read downloaded csv file. If you rerun this
+    # script after a while, make sure that the previous downloaded file
+    # 'mainchart.csv' is removed from your downloads beforehand.
     df_main = pd.read_csv("~/Downloads/mainChart.csv")
     df_main.rename(columns={"category": "Datum", "benzine prijs":
-        "Gem. benzineprijs"}, inplace = True)
-    # Replace the '.' with ',' in column 'Datum' to make further processing
-    # easier.
-    df_main["Gem. benzineprijs"] = (df_main["Gem. benzineprijs"].astype(
-        str).str.replace
-                                                    (".",",",regex=False))
+        "Benzineprijs"}, inplace = True)
+
     # Remove the first 4 characters in column 'Datum'. These represent the
     # day of the month and a space. This is irrelevant for further analysis.
     df_main["Datum"] = df_main["Datum"].str.slice(start=4)
     # Convert column 'Datum' from string to datetime
-    df_main['Datum'] = pd.to_datetime(df_main.Datum)
+    df_main["Datum"] = pd.to_datetime(df_main.Datum)
     # Add a column with the month number
-    df_main['Maand'] = df_main['Datum'].dt.month
+    df_main["Maand"] = df_main["Datum"].dt.month
+    # Check result
+    print(df_main)
 
-    # Create unique filename
-    i = 0
-    while os.path.exists(f'benzineprijzen_{datetime.now():%Y%m%d_%H%M}.csv'):
-        i += 1
+    # Create a second dataframe with the average petrol price per month
+    df_average = (df_main.groupby(["Maand"])["Benzineprijs"].
+                  mean().
+                  round(2).
+                  reset_index())
+    df_average["Maand"] = pd.to_datetime(df_average['Maand'],
+                                                format='%m').dt.month_name(
+                                                locale="nl_NL")
+    # Check result
+    print(df_average)
 
-    # print df to new csv file
-    df_main.to_csv(f'benzineprijzen_{datetime.now():%Y%m%d_%H%M}.csv',
+    # Create unique filenames for each times the script is run for both
+    # files to prevent overwriting. Can be commented out if preferred.
+    a = 0
+    while os.path.exists(f"Benzineprijzen_"f"{datetime.now():%Y%m%d_%H%M}.csv"):
+        a += 1
+
+    b = 0
+    while os.path.exists(f"Prijs per maand_{datetime.now():%Y%m%d_%H%M}.csv"):
+        b += 1
+
+    # Print both dataframes to csv files
+    df_main.to_csv(f"Benzineprijzen_{datetime.now():%Y%m%d_%H%M}.csv",
                                                                 index=False)
-    print(f"CSV processed and saved as benzineprijzen_{datetime.now()
-                                                        :%Y%m%d_%H%M}.csv")
+
+    df_average.to_csv(f"Prijs per maand_{datetime.now():%Y%m%d_%H%M}.csv",
+                                                                index=False)
+
+    print(f"CSVs processed and saved!")
 
 # Initializer
+# Choose whether to run both parts of the script or just one of the two
 if __name__ == "__main__":
-    # download_csv()
+    download_csv()
     process_csv()
