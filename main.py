@@ -44,7 +44,7 @@ def process_csv():
                   mean().
                   round(2).
                   reset_index())
-    df_average["Maand"] = pd.to_datetime(df_average['Maand'],
+    df_average["Maand"] = pd.to_datetime(df_average["Maand"],
                                                 format='%m').dt.month_name(
                                                 locale="nl_NL")
     # Check result
