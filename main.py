@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# Function to download csv from brandstofdata.nl using selenium
+# Function to download csv from brandstofdata.nl using Selenium
 def download_csv():
     # Selecting browser. Firefox works better than Safari
     browser_driver = webdriver.Firefox()
@@ -50,27 +50,22 @@ def process_csv():
     # Check result
     print(df_average)
 
-    # Create unique filenames for each times the script is run for both
-    # files to prevent overwriting. Can be commented out if preferred.
-    a = 0
-    while os.path.exists(f"Benzineprijzen_"f"{datetime.now():%Y%m%d_%H%M}.csv"):
-        a += 1
+    # Return the dataframes for use in a second function
+    return df_main, df_average
 
-    b = 0
-    while os.path.exists(f"Prijs per maand_{datetime.now():%Y%m%d_%H%M}.csv"):
-        b += 1
-
-    # Print both dataframes to csv files
-    df_main.to_csv(f"Benzineprijzen_{datetime.now():%Y%m%d_%H%M}.csv",
-                                                                index=False)
-
-    df_average.to_csv(f"Prijs per maand_{datetime.now():%Y%m%d_%H%M}.csv",
-                                                                index=False)
-
-    print(f"CSVs processed and saved!")
+# Function to save the returned values in the function above to a csv file.
+# The function is written in such a way that the files get a unique name
+# # each time the function is called.
+def save_to_csv(df, prefix="output"):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    filename = f"{prefix}_{timestamp}.csv"
+    df.to_csv(filename, index=False)
 
 # Initializer
-# Choose whether to run both parts of the script or just one of the two
+# Choose whether to run all the functions in this script parts by
+# commenting out the functions you don't need.
 if __name__ == "__main__":
     download_csv()
-    process_csv()
+    df_main, df_average = process_csv()
+    save_to_csv(df_main, "Benzineprijzen")
+    save_to_csv(df_average, "Prijs per maand")
